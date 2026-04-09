@@ -14,3 +14,20 @@ class SourceDocumentResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class TargetDocumentCreate(BaseModel):
+    title: str
+    raw_text: str 
+    target_category: str = "role_description"
+
+class TargetDocumentResponse(BaseModel):
+    id: int
+    title: str
+    target_category: str
+    raw_text: str | None = None
+    cleaned_text: str
+    created_at: datetime
+
+    model_config = {
+        "from_attributes": True
+    }

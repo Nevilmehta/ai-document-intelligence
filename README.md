@@ -8,3 +8,8 @@ alembic revision --autogenerate -m "create users table"
 
 Then apply:
 alembic upgrade head
+
+---------------------------
+SourceDocument
+TargetDocument
+AnalysisResult

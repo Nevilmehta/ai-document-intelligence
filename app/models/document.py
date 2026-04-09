@@ -19,3 +19,18 @@ class SourceDocument(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User", back_populates="source_documents")
+
+class TargetDocument(Base):
+    __tablename__ = 'target_documents'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    title = Column(String(255), nullable=False)
+    target_category = Column(String(100), nullable=False, default="role_description")
+
+    raw_text = Column(Text, nullable=True)
+    cleaned_text = Column(Text, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user = relationship("User", back_populates="target_documents")

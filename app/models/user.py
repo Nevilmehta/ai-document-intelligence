@@ -12,3 +12,5 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     source_documents = relationship("SourceDocument", back_populates="user", cascade="all, delete-orphan")
+    target_documents = relationship("TargetDocument", back_populates="user", cascade="all, delete-orphan")
+    analysis_results = relationship("AnalysisResult", back_populates="user", cascade="all, delete-orphan")

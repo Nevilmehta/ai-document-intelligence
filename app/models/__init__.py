@@ -1,2 +1,3 @@
 from app.models.user import User
-from app.models.document import SourceDocument
+from app.models.document import SourceDocument, TargetDocument
+from app.models.analysis import AnalysisResult
