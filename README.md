@@ -13,3 +13,5 @@ alembic upgrade head
 SourceDocument
 TargetDocument
 AnalysisResult
+
+PostgreSQL JSONB Columns - next things
