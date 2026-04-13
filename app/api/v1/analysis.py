@@ -15,15 +15,12 @@ def create_analysis(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    try: 
-        return run_analysis(
-            db,
-            current_user=current_user,
-            source_document_id=payload.source_document_id,
-            target_document_id=payload.target_document_id
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return run_analysis(
+        db,
+        current_user=current_user,
+        source_document_id=payload.source_document_id,
+        target_document_id=payload.target_document_id
+    )
 
 @router.get("", response_model=list[AnalysisResponse])
 def list_analysis_results(
@@ -40,5 +37,6 @@ def get_analysis_result_by_id(
 ):
     result = get_analysis_result(db, current_user=current_user, analysis_id=analysis_id)
     if not result:
+        from app.core.exceptions import AppException
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis result not found")
     return result

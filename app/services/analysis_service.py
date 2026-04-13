@@ -1,6 +1,7 @@
 import json
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import AppException
 from app.models.user import User
 from app.repositories.analysis_repository import (
     create_analysis_result,
@@ -37,32 +38,33 @@ def run_analysis(
     source_document_id: int,
     target_document_id: int
 ):
+
     source_document = get_source_document_by_id(
         db, document_id=source_document_id, user_id=current_user.id
     )
 
     if not source_document:
-        raise ValueError("Source document not found")
+        raise ValueError("Source document not found", status_code=404)
 
     target_document = get_target_document_by_id(
         db, document_id=target_document_id, user_id=current_user.id
     )
 
     if not target_document:
-        raise ValueError("Target document not found")
+        raise ValueError("Target document not found", status_code=404)
 
     prompt = build_analysis_prompt(source_text=source_document.cleaned_text, 
     target_text=target_document.cleaned_text)
 
     llm_result = generate_response(source_text=source_document.cleaned_text, 
     target_text=target_document.cleaned_text, 
-    prompt=prompt)
+    )
 
     saved_result = create_analysis_result(
         db,
         user_id=current_user.id,
-        source_document_id=source_document_id,
-        target_document_id=target_document_id,
+        source_document_id=source_document.id,
+        target_document_id=target_document.id,
         fit_score=llm_result["fit_score"],
         summary=llm_result["summary"],
         strengths=llm_result["strengths"],
@@ -70,7 +72,7 @@ def run_analysis(
         suggestions=llm_result["suggestions"],
         improved_bullets=llm_result["improved_bullets"],
         cover_letter=llm_result["cover_letter"],
-        model_name=llm_result.get("model_name")
+        model_name=llm_result["model_name"]
     )
 
     return _deserialize_analysis_record(saved_result)

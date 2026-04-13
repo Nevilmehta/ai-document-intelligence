@@ -2,6 +2,8 @@ from pathlib import Path
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
+from app.core.exceptions import AppException
 from app.repositories.document_repository import (
     create_source_document, 
     get_source_document_by_id, 
@@ -24,11 +26,20 @@ def upload_source_document(db: Session, *, current_user: User, file: UploadFile,
     validate_pdf_file(file)
     ensure_upload_dir()
 
+    contents = file.file.read()
+    max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
+
+    if len(contents) > max_bytes:
+        raise AppException(
+            f"File size exceeds the maximum limit of {settings.MAX_UPLOAD_SIZE_MB} MB.",
+            status_code=400
+        )
+
     stored_filename = generate_stored_filename(file.filename)
     file_path = build_file_path(stored_filename)
 
     with open(file_path, "wb") as buffer:
-        buffer.write(file.file.read())
+        buffer.write(contents)
 
     extracted_text, cleaned_text = extract_and_clean_text_from_pdf(file_path)
 
