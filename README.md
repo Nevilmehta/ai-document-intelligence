@@ -28,5 +28,9 @@ Redis TTL (Time to live) mechanism that sets expiration time
 
 --------------------------------------------------------------
 If u have docker installed then, 
-
+To run redis:
 docker run --name redis-cache -p 6379:6379 -d redis
+
+error marking plugins:
+netstat -ano | findstr :8000
+taskkill /PID 13888 /F

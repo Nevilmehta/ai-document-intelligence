@@ -22,3 +22,5 @@ class AnalysisResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+# Pydantic will parse ISO datetime strings back into datetime objects for the response.

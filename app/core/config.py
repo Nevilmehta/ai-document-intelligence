@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 60
 
     GOOGLE_API_KEY: str
-    GOOGLE_AI_MODEL: str = "gemini-2.5-flash"
+    GOOGLE_AI_MODEL: str = "gemini-2.5-flash-lite"
 
     # redis host
     REDIS_HOST: str = "localhost"

@@ -1,6 +1,8 @@
 import json
+import logging
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.exceptions import AppException
 from app.models.user import User
 from app.repositories.analysis_repository import (
@@ -13,7 +15,11 @@ from app.repositories.document_repository import (
     get_target_document_by_id
 )
 from app.services.llm_service import generate_response
-from app.services.prompt_service import build_analysis_prompt
+from app.services.cache_service import get_cache, set_cache
+from app.utils.cache_keys import build_analysis_cache_key
+
+logger = logging.getLogger(__name__)
+
 
 def _deserialize_analysis_record(record):
     return {
@@ -31,6 +37,7 @@ def _deserialize_analysis_record(record):
         "created_at": record.created_at
     }
 
+
 def run_analysis(
     db: Session,
     *,
@@ -38,26 +45,41 @@ def run_analysis(
     source_document_id: int,
     target_document_id: int
 ):
-
     source_document = get_source_document_by_id(
-        db, document_id=source_document_id, user_id=current_user.id
+        db,
+        document_id=source_document_id,
+        user_id=current_user.id
     )
 
     if not source_document:
-        raise ValueError("Source document not found", status_code=404)
+        raise AppException("Source document not found", status_code=404)
 
     target_document = get_target_document_by_id(
-        db, document_id=target_document_id, user_id=current_user.id
+        db,
+        document_id=target_document_id,
+        user_id=current_user.id
     )
 
     if not target_document:
-        raise ValueError("Target document not found", status_code=404)
+        raise AppException("Target document not found", status_code=404)
 
-    prompt = build_analysis_prompt(source_text=source_document.cleaned_text, 
-    target_text=target_document.cleaned_text)
+    cache_key = build_analysis_cache_key(
+        user_id=current_user.id,
+        source_document_id=source_document.id,
+        target_document_id=target_document.id,
+        model_name=settings.GOOGLE_AI_MODEL
+    )
 
-    llm_result = generate_response(source_text=source_document.cleaned_text, 
-    target_text=target_document.cleaned_text, 
+    cached_result = get_cache(cache_key)
+    if cached_result:
+        logger.info("Cache hit for key %s", cache_key)
+        return cached_result
+
+    logger.info("Cache miss for key %s", cache_key)
+
+    llm_result = generate_response(
+        source_text=source_document.cleaned_text,
+        target_text=target_document.cleaned_text,
     )
 
     saved_result = create_analysis_result(
@@ -75,15 +97,30 @@ def run_analysis(
         model_name=llm_result["model_name"]
     )
 
-    return _deserialize_analysis_record(saved_result)
+    response_data = _deserialize_analysis_record(saved_result)
+
+    cached_data = {
+        **response_data,
+        "created_at": response_data["created_at"].isoformat()
+    }
+
+    set_cache(cache_key, cached_data)
+
+    return response_data
+
 
 def get_analysis_result(db: Session, *, analysis_id: int, current_user: User):
-    record = get_analysis_result_by_id(db, analysis_id=analysis_id, user_id=current_user.id)
+    record = get_analysis_result_by_id(
+        db,
+        analysis_id=analysis_id,
+        user_id=current_user.id
+    )
 
     if not record:
-        raise ValueError("Analysis result not found")
+        raise AppException("Analysis result not found", status_code=404)
 
     return _deserialize_analysis_record(record)
+
 
 def get_all_analysis_results(db: Session, *, current_user: User):
     records = list_analysis_results(db, user_id=current_user.id)

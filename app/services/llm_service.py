@@ -2,6 +2,7 @@ import json
 import logging
 
 import google.generativeai as genai
+from google.api_core.exceptions import ResourceExhausted
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from app.core.config import settings
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 genai.configure(api_key=settings.GOOGLE_API_KEY)
 model = genai.GenerativeModel(settings.GOOGLE_AI_MODEL)
 
-@retry(stop=stop_after_attempt(3), wait=wait_random_exponential(multiplier=1, max=10))
+@retry(stop=stop_after_attempt(3), wait=wait_random_exponential(multiplier=1, max=10), reraise=True)
 def generate_response(source_text: str, target_text: str):
 
     prompt = build_analysis_prompt(source_text= source_text, target_text= target_text)
@@ -29,7 +30,19 @@ def generate_response(source_text: str, target_text: str):
         )
 
         content = response.text.strip()
-        data = json.loads(content)
+
+        # remove accidental markdown fences if model returns them
+        if content.startswith("```json"):
+            content = content.removeprefix("```json").removesuffix("```").strip()
+        elif content.startswith("```"):
+            content = content.removeprefix("```").removesuffix("```").strip()
+
+        parsed = json.loads(content)
+
+        # fix common model key typos
+        if "improved_bullets" in parsed and "improved_bullets" not in parsed:
+            parsed["improved_bullets"] = parsed.pop("improved_bullets")
+
         validated = LLMAnalysisOutput.model_validate(parsed)
 
         return {
@@ -43,10 +56,26 @@ def generate_response(source_text: str, target_text: str):
             "model_name": settings.GOOGLE_AI_MODEL,
         }
 
+    except ResourceExhausted as e:
+        logger.warning("Gemini quota exceeded: %s", str(e))
+        raise AppException(
+            "Gemini API quota exceeded. Please wait a little and try again.",
+            status_code=429,
+        ) from e
+
     except json.JSONDecodeError as e:
-        logger.execution("Failed to parse Gemini response as JSON")
-        raise AppException("Failed to parse analysis output from Gemini", status_code=500) from e
+        logger.exception("Invalid JSON returned by model")
+        raise AppException(
+            "Model returned invalid JSON output.",
+            status_code=500,
+        ) from e
+
+    except AppException:
+        raise
 
     except Exception as e:
-        logger.exception("Gemini analysis failed")
-        raise AppException("Failed to generate analysis output", status_code=500) from e
+        logger.exception("Unexpected LLM error: %s", str(e))
+        raise AppException(
+            f"Failed to generate analysis output: {str(e)}",
+            status_code=500,
+        ) from e

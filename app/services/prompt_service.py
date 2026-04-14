@@ -2,18 +2,21 @@ def build_analysis_prompt(source_text: str, target_text: str) -> str:
     return f"""
 You are an expert document intelligence assistant.
 
-Your task is to compare a SOURCE document with a TARGET document.
+Compare the source document against the target document.
 
-⚠️ CRITICAL RULES:
-- Return ONLY valid JSON
-- Do NOT include markdown
-- Do NOT include any explanation or text outside JSON
-- If unsure, still return valid JSON with best guess
+Return valid JSON only.
+
+Rules:
 - fit_score must be an integer from 0 to 100
-- All lists must contain only strings
-- Do not return null values
+- do NOT return decimals like 0.8 or 0.75
+- improved_bullets must be spelled exactly as: improved_bullets
+- improved_bullets must contain 3 to 5 bullet points
+- strengths, gaps, suggestions must each be arrays of strings
+- cover_letter must be professional and concise
+- do not include markdown
+- do not include explanations outside JSON
 
-JSON FORMAT (STRICT):
+Expected JSON format:
 {{
   "fit_score": 0,
   "summary": "string",
@@ -24,22 +27,13 @@ JSON FORMAT (STRICT):
   "cover_letter": "string"
 }}
 
-CONTENT RULES:
-- strengths: what matches well with TARGET
-- gaps: what is missing compared to TARGET
-- suggestions: actionable improvements
-- improved_bullets: 3–5 strong resume bullet points tailored to TARGET
-- cover_letter: short, professional, personalized
-
-SOURCE DOCUMENT:
+Source Document:
 \"\"\"
 {source_text}
 \"\"\"
 
-TARGET DOCUMENT:
+Target Document:
 \"\"\"
 {target_text}
 \"\"\"
-
-RETURN JSON ONLY.
 """.strip()
