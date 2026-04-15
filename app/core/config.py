@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     REDIS_DB: int = 0
     REDIS_TTL_SECONDS: int = 86400  # 24 hours
 
+    # celery 
+    REDIS_URL: str = "redis://localhost:6379/0"
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

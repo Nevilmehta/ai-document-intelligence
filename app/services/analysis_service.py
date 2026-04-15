@@ -37,34 +37,31 @@ def _deserialize_analysis_record(record):
         "created_at": record.created_at
     }
 
-
-def run_analysis(
+def perform_analysis_and_store(
     db: Session,
     *,
-    current_user: User,
+    user_id: int,
     source_document_id: int,
     target_document_id: int
 ):
     source_document = get_source_document_by_id(
         db,
         document_id=source_document_id,
-        user_id=current_user.id
+        user_id=user_id
     )
-
     if not source_document:
-        raise AppException("Source document not found", status_code=404)
+        raise AppException("Source document not found.", status_code=404)
 
     target_document = get_target_document_by_id(
         db,
         document_id=target_document_id,
-        user_id=current_user.id
+        user_id=user_id,
     )
-
     if not target_document:
-        raise AppException("Target document not found", status_code=404)
+        raise AppException("Target document not found.", status_code=404)
 
     cache_key = build_analysis_cache_key(
-        user_id=current_user.id,
+        user_id=user_id,
         source_document_id=source_document.id,
         target_document_id=target_document.id,
         model_name=settings.GOOGLE_AI_MODEL
@@ -84,7 +81,7 @@ def run_analysis(
 
     saved_result = create_analysis_result(
         db,
-        user_id=current_user.id,
+        user_id=user_id,
         source_document_id=source_document.id,
         target_document_id=target_document.id,
         fit_score=llm_result["fit_score"],
@@ -106,7 +103,22 @@ def run_analysis(
 
     set_cache(cache_key, cached_data)
 
-    return response_data
+    return {"cached": False, "result": response_data}
+
+def run_analysis(
+    db: Session,
+    *,
+    current_user: User,
+    source_document_id: int,
+    target_document_id: int
+):
+    output = perform_analysis_and_store(
+        db,
+        user_id= current_user.id,
+        source_document_id= source_document_id,
+        target_document_id= target_document_id
+    )
+    return output["result"]
 
 
 def get_analysis_result(db: Session, *, analysis_id: int, current_user: User):
