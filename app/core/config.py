@@ -12,10 +12,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     UPLOAD_DIR: str = "uploads"
-    MAX_UPLOAD_SIZE_MB: int = 60
+    MAX_UPLOAD_SIZE_MB: int = 5
 
     GOOGLE_API_KEY: str
     GOOGLE_AI_MODEL: str = "gemini-2.5-flash-lite"
+    GOOGLE_EMBEDDING_MODEL: str = "gemini-embedding-001"
+    EMBEDDING_DIMENSION: int = 3072
 
     # redis host
     REDIS_HOST: str = "localhost"
