@@ -25,3 +25,9 @@ class SimilarDocumentResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class SemanticSimilarityResponse(BaseModel):
+    source_document_id: int
+    target_document_id: int
+    similarity_score: float
+    similarity_percentage: float

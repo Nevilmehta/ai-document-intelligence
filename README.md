@@ -97,3 +97,14 @@ docker exec -it docintel-pgvector psql -U postgres -d doc_intelligence_db -c "CR
 verify it worked:
 docker exec -it docintel-pgvector psql -U postgres -d doc_intelligence_db -c "\dx"
 
+------------------------------------------------------------------------------------------------------------
+
+Embedding Similarity Score:
+tells u how semantically close the two texts are in vector space
+
+LLM Fit score:
+how well the source aligns with the target based on reasoning, gaps, suggestions, and contextual understanding
+
+embedding score = retrieval / semantic closeness
+LLM score = reasoned evaluation
+

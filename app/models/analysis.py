@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Text, Float
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -12,8 +12,9 @@ class AnalysisResult(Base):
     target_document_id = Column(Integer, ForeignKey("target_documents.id", ondelete="CASCADE"), nullable=False, index=True)
 
     fit_score = Column(Integer, nullable=False)
-    summary = Column(Text, nullable=False)
+    semantic_similarity = Column(Float, nullable=True)
 
+    summary = Column(Text, nullable=False)
     strengths = Column(Text, nullable=False)
     gaps = Column(Text, nullable=False)
     suggestions = Column(Text, nullable=False)

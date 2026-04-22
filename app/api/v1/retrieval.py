@@ -4,12 +4,13 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.embedding import DocumentEmbeddingResponse, SimilarDocumentResponse
+from app.schemas.embedding import DocumentEmbeddingResponse, SimilarDocumentResponse, SemanticSimilarityResponse
 from app.services.embedding_service import generate_embedding
 from app.services.retrieval_service import (
     create_embedding_for_source_document,
     create_embedding_for_target_document,
-    find_similar_source_documents
+    find_similar_source_documents,
+    compute_source_target_similarity
 )
 
 router = APIRouter(prefix="/retrieval", tags=["Retrieval"])
@@ -51,4 +52,18 @@ def similar_source_documents(
         user_id=current_user.id,
         query_embeddings=query_embedding,
         limit=limit
+    )
+
+@router.get("/similarity/source-target", response_model=SemanticSimilarityResponse)
+def source_target_similarity(
+    source_document_id: int = Query(..., ge=1),
+    target_document_id: int = Query(..., ge=1),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return compute_source_target_similarity(
+        db,
+        user_id=current_user.id,
+        source_document_id=source_document_id,
+        target_document_id=target_document_id
     )
