@@ -16,9 +16,9 @@ genai.configure(api_key=settings.GOOGLE_API_KEY)
 model = genai.GenerativeModel(settings.GOOGLE_AI_MODEL)
 
 @retry(stop=stop_after_attempt(3), wait=wait_random_exponential(multiplier=1, max=10), reraise=True)
-def generate_response(source_text: str, target_text: str):
+def generate_response(source_text: str, target_text: str, semantic_similarity: float | None = None):
 
-    prompt = build_analysis_prompt(source_text= source_text, target_text= target_text)
+    prompt = build_analysis_prompt(source_text= source_text, target_text= target_text, semantic_similarity= semantic_similarity)
     
     try:
         response = model.generate_content(
@@ -29,7 +29,10 @@ def generate_response(source_text: str, target_text: str):
             }
         )
 
-        content = response.text.strip()
+        content = (response.text or "").strip()
+
+        if not content:
+            raise AppException("Model returned an empty response.", status_code=500)
 
         # remove accidental markdown fences if model returns them
         if content.startswith("```json"):

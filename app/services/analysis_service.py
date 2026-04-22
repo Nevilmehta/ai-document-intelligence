@@ -14,6 +14,8 @@ from app.repositories.document_repository import (
     get_source_document_by_id,
     get_target_document_by_id
 )
+from app.services.retrieval_service import compute_source_target_similarity
+
 from app.services.llm_service import generate_response
 from app.services.cache_service import get_cache, set_cache
 from app.utils.cache_keys import build_analysis_cache_key
@@ -27,6 +29,7 @@ def _deserialize_analysis_record(record):
         "source_document_id": record.source_document_id,
         "target_document_id": record.target_document_id,
         "fit_score": record.fit_score,
+        "semantic_similarity": record.semantic_similarity,
         "summary": record.summary,
         "strengths": json.loads(record.strengths),
         "gaps": json.loads(record.gaps),
@@ -74,9 +77,18 @@ def perform_analysis_and_store(
 
     logger.info("Cache miss for key %s", cache_key)
 
+    similarity_result = compute_source_target_similarity(
+        db,
+        user_id=user_id,
+        source_document_id=source_document.id,
+        target_document_id=target_document.id
+    )
+    semantic_similarity = similarity_result["similarity_score"]
+
     llm_result = generate_response(
         source_text=source_document.cleaned_text,
         target_text=target_document.cleaned_text,
+        semantic_similarity=semantic_similarity
     )
 
     saved_result = create_analysis_result(
@@ -85,6 +97,7 @@ def perform_analysis_and_store(
         source_document_id=source_document.id,
         target_document_id=target_document.id,
         fit_score=llm_result["fit_score"],
+        semantic_similarity=semantic_similarity,
         summary=llm_result["summary"],
         strengths=llm_result["strengths"],
         gaps=llm_result["gaps"],

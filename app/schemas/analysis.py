@@ -10,6 +10,7 @@ class AnalysisResponse(BaseModel):
     source_document_id: int
     target_document_id: int
     fit_score: int
+    semantic_similarity: float | None = None
     summary: str
     strengths: list[str]
     gaps: list[str]

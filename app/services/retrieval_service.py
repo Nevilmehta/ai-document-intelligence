@@ -106,11 +106,19 @@ def compute_source_target_similarity(
 ):
     source_embedding = get_source_document_embeddings(db, user_id=user_id, source_document_id=source_document_id)
     if not source_embedding:
-        raise AppException(status_code=404, detail="Source document embedding not found")
+        source_embedding = create_embedding_for_source_document(
+            db,
+            user_id=user_id,
+            source_document_id=source_document_id,
+        )
 
     target_embedding = get_target_document_embeddings(db, user_id=user_id, target_document_id=target_document_id)
     if not target_embedding:
-        raise AppException(status_code=404, detail="Target document embedding not found")
+        target_embedding = create_embedding_for_target_document(
+            db,
+            user_id=user_id,
+            target_document_id=target_document_id,
+        )
 
     similarity_score = _cosine_similarity(
         source_embedding.embedding,
