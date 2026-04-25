@@ -15,6 +15,7 @@ from app.repositories.document_repository import (
     get_target_document_by_id
 )
 from app.services.retrieval_service import compute_source_target_similarity
+from app.services.chunk_retrieval_service import find_relevant_chunks_for_target_document
 
 from app.services.llm_service import generate_response
 from app.services.cache_service import get_cache, set_cache
@@ -73,9 +74,28 @@ def perform_analysis_and_store(
     cached_result = get_cache(cache_key)
     if cached_result:
         logger.info("Cache hit for key %s", cache_key)
-        return cached_result
+        return {
+            "cached": True,
+            "result": cached_result
+        }
 
     logger.info("Cache miss for key %s", cache_key)
+
+    relevant_chunks = find_relevant_chunks_for_target_document(
+        db,
+        user_id=user_id,
+        source_document_id=source_document_id,
+        target_document_id=target_document.id,
+        limit= settings.RETRIEVAL_TOP_K
+    )
+
+    if relevant_chunks:
+        source_context = "\n\n".join(
+            f"[Chunk {chunk['chunk_index']}]\n{chunk['chunk_text']}"
+            for chunk in relevant_chunks
+        )
+    else:
+        source_context = source_document.cleaned_text
 
     similarity_result = compute_source_target_similarity(
         db,
@@ -86,7 +106,7 @@ def perform_analysis_and_store(
     semantic_similarity = similarity_result["similarity_score"]
 
     llm_result = generate_response(
-        source_text=source_document.cleaned_text,
+        source_text=source_context,
         target_text=target_document.cleaned_text,
         semantic_similarity=semantic_similarity
     )

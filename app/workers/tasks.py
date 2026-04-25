@@ -9,6 +9,7 @@ from app.services.retrieval_service import (
     create_embedding_for_target_document
 )
 from app.workers.celery_app import celery_app
+from app.services.chunk_service import create_chunks_and_embeddings_for_source_document
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,26 @@ def create_target_embedding_task(self, user_id: int, target_document_id: int):
         }
     except Exception:
         logger.exception("celery target embedding task failed")
+        raise
+    finally:
+        db.close()
+
+@celery_app.task(bind=True, name="app.workers.tasks.create_chunks_and_embeddings")
+def create_source_chunks_and_embeddings_task(self, user_id: int, source_document_id: int):
+    db = create_db_session()
+    try:
+        chunks = create_chunks_and_embeddings_for_source_document(
+            db,
+            user_id=user_id,
+            source_document_id=source_document_id
+        )
+        return {
+            "status": "SUCCESS",
+            "source_document_id": source_document_id,
+            "chunk_count": len(chunks)
+        }
+    except Exception:
+        logger.exception("celery chunking and embedding task failed")
         raise
     finally:
         db.close()

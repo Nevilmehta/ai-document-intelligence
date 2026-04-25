@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     GOOGLE_EMBEDDING_MODEL: str = "gemini-embedding-001"
     EMBEDDING_DIMENSION: int = 3072
 
+    # chunking config
+    CHUNK_SIZE: int = 1400
+    CHUNK_OVERLAP: int = 250
+    RETRIEVAL_TOP_K: int = 5
+
     # redis host
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379

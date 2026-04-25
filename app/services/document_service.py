@@ -21,7 +21,7 @@ from app.utils.file_handler import (
     build_file_path
 )
 from app.utils.text_cleaner import clean_input_text
-from app.workers.tasks import create_source_embedding_task, create_target_embedding_task
+from app.workers.tasks import create_source_embedding_task, create_target_embedding_task, create_source_chunks_and_embeddings_task
 
 def upload_source_document(db: Session, *, current_user: User, file: UploadFile, document_category: str = "resume"):
     validate_pdf_file(file)
@@ -61,6 +61,11 @@ def upload_source_document(db: Session, *, current_user: User, file: UploadFile,
     )
 
     create_source_embedding_task.delay(
+        user_id = current_user.id,
+        source_document_id = saved_document.id
+    )
+
+    create_source_chunks_and_embeddings_task.delay(
         user_id = current_user.id,
         source_document_id = saved_document.id
     )

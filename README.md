@@ -108,3 +108,73 @@ how well the source aligns with the target based on reasoning, gaps, suggestions
 embedding score = retrieval / semantic closeness
 LLM score = reasoned evaluation
 
+==============================================================
+What the flow is now
+
+Your current retrieval flow is:
+
+upload source document
+source document cleaned
+source document embedded
+source document chunked
+source chunks embedded
+create target document
+target embedded
+target embedding used to search source chunk embeddings
+top relevant source chunks returned
+those chunks are passed to LLM analysis
+
+That is correct.
+
+Instead of sending the full source document every time, retrieve the most relevant chunks and send those to the LLM.
+
+--------------------------------------------------
+Alembic autogenerate + custom type problem-------error------
+pgvector defined while doing alembic upgrade head
+
+Right after:
+alembic revision --autogenerate -m "..."
+open the file before running upgrade head.
+Check for:
+missing imports
+
+from pgvector.sqlalchemy import Vector
+sa.Column("embedding", Vector(dim=1536), nullable=False)
+
+-----------------------------------------------------------
+👉 alembic revision --autogenerate = CREATE the blueprint
+👉 alembic upgrade head = APPLY the blueprint
+
+1. alembic revision --autogenerate -m "message"
+What it does
+
+👉 Generates a migration file based on your models
+It compares:
+SQLAlchemy models  vs  current database schema
+
+2. alembic upgrade head
+What it does
+
+👉 Applies migrations to the database
+Runs all pending migration files
+Updates DB schema
+
+-------------------------------------------------------------------
+If something break,
+Check in this order:
+
+auth working?
+source upload working?
+target creation working?
+source embedding created?
+target embedding created?
+source chunks created?
+source chunk embeddings created?
+similarity endpoint working?
+chunk retrieval endpoint returning chunks?
+analysis using chunks?
+
+test till phase 4 retrieval target query :
+Upload source → auto embed + auto chunk → create target → auto embed → similarity check → chunk retrieval → retrieval-aware analysis → cache re-test
+
+----------------------------------------------------------------------------------------------------------

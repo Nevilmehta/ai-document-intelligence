@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 from app.core.config import settings
 from app.core.database import Base
-from app.models import User, SourceDocument, TargetDocument, AnalysisResult, AnalysisJob, DocumentEmbedding # Import your models here to ensure they are registered with SQLAlchemy
+from app.models import User, SourceDocument, TargetDocument, AnalysisResult, AnalysisJob, DocumentEmbedding, SourceDocumentChunk, SourceDocumentChunkEmbedding # Import your models here to ensure they are registered with SQLAlchemy
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
