@@ -3,8 +3,10 @@ __pycache__/
 *.pyc
 .venv/
 env/
-.env
-.env.example
+
+# Env files (IMPORTANT)
+.env*
+!.env.example
 
 # Node / React
 node_modules/
@@ -16,6 +18,34 @@ build/
 
 # OS
 .DS_Store
+Thumbs.db
 
 # uploads
 uploads/
+
+# Logs
+logs/
+*.log
+
+# DB
+*.db
+*.sqlite3
+
+# Docker
+docker-compose.override.yml
+
+# Alembic
+alembic/versions/__pycache__/
+
+# Temp
+tmp/
+temp/
+
+# Celery
+celerybeat-schedule
+*.pid
+
+# Secrets safety
+*.pem
+*.key
+*.crt

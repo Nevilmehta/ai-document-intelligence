@@ -175,6 +175,29 @@ chunk retrieval endpoint returning chunks?
 analysis using chunks?
 
 test till phase 4 retrieval target query :
-Upload source → auto embed + auto chunk → create target → auto embed → similarity check → chunk retrieval → retrieval-aware analysis → cache re-test
+Upload source → extract text → auto embed whole doc + chunks → create target → auto embed target → retrieve top-k chunks → compute semantic similarity → run LLM analysis → cache/store result
 
-----------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
+Dockerization:
+
+1. env.docker
+2. .dockerignore
+3. Dockerfile
+4. docker-compose.yml(writing all scripts for all service we r using)
+commands---
+code changes only                           docker compose up
+To run:                                     docker compose up --build   (rebuilds container and service)
+To detach model:                            docker compose up --build -d
+check containers:                           docker compose ps
+stop and remove containers + networks       docker compose down
+delete postgreSQL data + redis data         docker compose down -v
+To check logs:                              docker compose logs -f api/worker/db/redis
+then run:                                   localhost:8000/docs
+
+Use migrations:
+alembic revision --autogenerate -m "add something"
+alembic upgrade head
+
+Database schema change:
+docker compose exec api alembic revision --autogenerate -m "add something"
+docker compose exec api alembic upgrade head
