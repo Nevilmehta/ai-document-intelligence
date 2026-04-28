@@ -201,3 +201,14 @@ alembic upgrade head
 Database schema change:
 docker compose exec api alembic revision --autogenerate -m "add something"
 docker compose exec api alembic upgrade head
+
+read upload bytes → save temp local file → extract text → upload original PDF to S3 → delete temp file
+do not extract directly from s3 yet, keep it simple
+===========================================================================
+
+EC2 → runs Docker Compose
+RDS PostgreSQL → database
+S3 → uploaded PDFs
+Redis → Docker container first, ElastiCache later
+
+AWS recommends RDS DB instances run inside a VPC, and their getting-started PostgreSQL guide uses EC2 + private RDS in the same VPC. S3 buckets should keep Block Public Access enabled for private files.

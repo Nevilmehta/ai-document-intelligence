@@ -11,7 +11,10 @@ class SourceDocument(Base):
     file_name = Column(String(255), nullable=False)
     original_file_name = Column(String(255), nullable=False)
     file_type = Column(String(50), nullable=False)
-    file_path = Column(String(500), nullable=False)
+    file_path = Column(String(500), nullable=True)
+
+    storage_provider = Column(String(50), nullable=False, default="local")
+    s3_key = Column(String(500), nullable=True)
 
     document_category = Column(String(100), nullable=False, default="resume")
     extracted_text = Column(Text, nullable=True)

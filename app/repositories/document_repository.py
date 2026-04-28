@@ -11,7 +11,9 @@ def create_source_document(
     file_path: str,
     document_category: str,
     extracted_text: str,
-    cleaned_text: str
+    cleaned_text: str,
+    storage_provider: str = "local",
+    s3_key: str | None = None
 ):
     document = SourceDocument(
         user_id=user_id,
@@ -21,7 +23,9 @@ def create_source_document(
         file_path=file_path,
         document_category=document_category,
         extracted_text=extracted_text,
-        cleaned_text=cleaned_text
+        cleaned_text=cleaned_text,
+        storage_provider=storage_provider,
+        s3_key=s3_key
     )
     db.add(document)
     db.commit()

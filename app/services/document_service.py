@@ -23,6 +23,8 @@ from app.utils.file_handler import (
 from app.utils.text_cleaner import clean_input_text
 from app.workers.tasks import create_source_embedding_task, create_target_embedding_task, create_source_chunks_and_embeddings_task
 
+from app.services.storage_service import upload_file_to_s3
+
 def upload_source_document(db: Session, *, current_user: User, file: UploadFile, document_category: str = "resume"):
     validate_pdf_file(file)
     ensure_upload_dir()
@@ -36,6 +38,7 @@ def upload_source_document(db: Session, *, current_user: User, file: UploadFile,
             status_code=400
         )
 
+    # step 1 extract text (use temp file)
     stored_filename = generate_stored_filename(file.filename)
     file_path = build_file_path(stored_filename)
 
@@ -48,16 +51,34 @@ def upload_source_document(db: Session, *, current_user: User, file: UploadFile,
         Path(file_path).unlink(missing_ok=True)
         raise AppException("No readable text could be extracted from this pdf", status_code=400)
 
+    # step 2 upload to s3
+    s3_key = None
+    storage_provider = "local"
+
+    if settings.USE_S3_STORAGE:
+        file.file.seek(0)
+        s3_key = upload_file_to_s3(file, current_user.id)
+        storage_provider = "s3"
+
+        # delete local temp file
+        Path(file_path).unlink(missing_ok=True)
+
+    print("USE_S3_STORAGE =", settings.USE_S3_STORAGE)
+    
+    # step 3 save in db
+
     saved_document = create_source_document(
         db,
         user_id=current_user.id,
         file_name=stored_filename,
         original_file_name=file.filename,
         file_type=file.content_type or "application/pdf",
-        file_path=file_path,
+        file_path=None if storage_provider == "s3" else file_path,
         document_category=document_category,
         extracted_text=extracted_text,
-        cleaned_text=cleaned_text
+        cleaned_text=cleaned_text,
+        storage_provider=storage_provider,
+        s3_key=s3_key
     )
 
     create_source_embedding_task.delay(
