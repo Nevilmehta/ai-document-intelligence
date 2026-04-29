@@ -212,3 +212,32 @@ S3 → uploaded PDFs
 Redis → Docker container first, ElastiCache later
 
 AWS recommends RDS DB instances run inside a VPC, and their getting-started PostgreSQL guide uses EC2 + private RDS in the same VPC. S3 buckets should keep Block Public Access enabled for private files.
+
+=================================================================================
+
+Think of Nginx as the “front door” of your backend system.
+
+Right now your app looks like this:
+Client → FastAPI (port 8000)
+With Nginx:
+Client → Nginx (port 80/443) → FastAPI (port 8000)
+
+🏗️ Real-world analogy
+Nginx = receptionist / security gate
+FastAPI = actual worker inside office
+Think of Nginx as the “front door” of your backend system.
+
+⚠️ Important mindset
+You are NOT adding Nginx for functionality.
+You are adding it for:
+
+production architecture
+scalability readiness
+deployment realism
+interview impact
+
+I added Nginx as a reverse proxy in front of my FastAPI backend to handle request routing, enable future HTTPS support, and abstract internal service ports. This prepares the system for production deployment and scaling.
+
+Nginx = traffic controller in front of your backend
+
+FastAPI itself does not create multiple servers in code. I run multiple instances of the same application using Uvicorn workers, Docker replicas, or multiple EC2 instances behind a load balancer. To support that, I designed the app to be stateless by storing data in PostgreSQL, files in S3, cache/tasks in Redis, and background work in Celery.
