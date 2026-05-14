@@ -241,3 +241,39 @@ I added Nginx as a reverse proxy in front of my FastAPI backend to handle reques
 Nginx = traffic controller in front of your backend
 
 FastAPI itself does not create multiple servers in code. I run multiple instances of the same application using Uvicorn workers, Docker replicas, or multiple EC2 instances behind a load balancer. To support that, I designed the app to be stateless by storing data in PostgreSQL, files in S3, cache/tasks in Redis, and background work in Celery.
+
+Prepared production gateway configuration using Nginx as a reverse proxy for Dockerized FastAPI and Celery services, with environment-specific deployment templates for future domain and HTTPS setup.
+
+Grafana supports provisioning data sources through YAML files, which can be version-controlled.
+
+Your backend system = patient
+Prometheus = collects health data
+Grafana = hospital monitor screen
+
+=>Request rate
+rate(http_requests_total[1m])
+
+Meaning:
+How many requests per second/minute are happening?
+You saw:
+/
+/docs
+/metrics
+because those were the endpoints you visited.
+
+=>Latency monitoring
+histogram_quantile(
+  0.95,
+  sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+)
+
+Meaning:
+How fast is the API responding?
+This is VERY important in real systems.
+
+best dashboard for prjects,
+API Traffic
+API Latency
+Error Rate
+Total Requests
+Active Requests

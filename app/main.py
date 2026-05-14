@@ -9,10 +9,14 @@ from app.core.config import settings
 from app.core.exceptions import AppException
 from app.core.logging import setup_logging
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
 setup_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
+
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,7 +25,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
