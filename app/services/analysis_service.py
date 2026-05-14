@@ -48,11 +48,22 @@ def perform_analysis_and_store(
     source_document_id: int,
     target_document_id: int
 ):
+    logger.info(
+        "Analysis started",
+        extra={
+            "request_id": "-",
+            "user_id": user_id,
+            "source_document_id": source_document_id,
+            "target_document_id": target_document_id,
+        },
+    )
+
     source_document = get_source_document_by_id(
         db,
         document_id=source_document_id,
         user_id=user_id
     )
+
     if not source_document:
         raise AppException("Source document not found.", status_code=404)
 
@@ -61,6 +72,7 @@ def perform_analysis_and_store(
         document_id=target_document_id,
         user_id=user_id,
     )
+
     if not target_document:
         raise AppException("Target document not found.", status_code=404)
 
@@ -72,21 +84,37 @@ def perform_analysis_and_store(
     )
 
     cached_result = get_cache(cache_key)
+
     if cached_result:
-        logger.info("Cache hit for key %s", cache_key)
+        logger.info(
+            "Analysis cache hit",
+            extra={
+                "request_id": "-",
+                "user_id": user_id,
+                "cache_key": cache_key,
+            },
+        )
+
         return {
             "cached": True,
             "result": cached_result
         }
 
-    logger.info("Cache miss for key %s", cache_key)
+    logger.info(
+        "Analysis cache miss",
+        extra={
+            "request_id": "-",
+            "user_id": user_id,
+            "cache_key": cache_key,
+        },
+    )
 
     relevant_chunks = find_relevant_chunks_for_target_document(
         db,
         user_id=user_id,
         source_document_id=source_document_id,
         target_document_id=target_document.id,
-        limit= settings.RETRIEVAL_TOP_K
+        limit=settings.RETRIEVAL_TOP_K
     )
 
     if relevant_chunks:
@@ -97,18 +125,50 @@ def perform_analysis_and_store(
     else:
         source_context = source_document.cleaned_text
 
+    logger.info(
+        "Relevant chunks retrieved",
+        extra={
+            "request_id": "-",
+            "user_id": user_id,
+            "source_document_id": source_document_id,
+            "target_document_id": target_document_id,
+            "chunk_count": len(relevant_chunks),
+        },
+    )
+
     similarity_result = compute_source_target_similarity(
         db,
         user_id=user_id,
         source_document_id=source_document.id,
         target_document_id=target_document.id
     )
+
     semantic_similarity = similarity_result["similarity_score"]
+
+    logger.info(
+        "Semantic similarity computed",
+        extra={
+            "request_id": "-",
+            "user_id": user_id,
+            "source_document_id": source_document.id,
+            "target_document_id": target_document.id,
+            "semantic_similarity": semantic_similarity,
+        },
+    )
 
     llm_result = generate_response(
         source_text=source_context,
         target_text=target_document.cleaned_text,
         semantic_similarity=semantic_similarity
+    )
+
+    logger.info(
+        "LLM analysis generated",
+        extra={
+            "request_id": "-",
+            "user_id": user_id,
+            "fit_score": llm_result["fit_score"],
+        },
     )
 
     saved_result = create_analysis_result(
@@ -136,7 +196,21 @@ def perform_analysis_and_store(
 
     set_cache(cache_key, cached_data)
 
-    return {"cached": False, "result": response_data}
+    logger.info(
+        "Analysis completed",
+        extra={
+            "request_id": "-",
+            "user_id": user_id,
+            "analysis_result_id": saved_result.id,
+            "fit_score": llm_result["fit_score"],
+            "semantic_similarity": semantic_similarity,
+        },
+    )
+
+    return {
+        "cached": False,
+        "result": response_data
+    }
 
 def run_analysis(
     db: Session,

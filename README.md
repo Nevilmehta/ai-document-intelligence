@@ -277,3 +277,39 @@ API Latency
 Error Rate
 Total Requests
 Active Requests
+--------------------------------------------------------
+
+Strcutured logging + request tracing 
+
+Monitoring tells you:
+Something is wrong
+
+Logging tells you:
+WHAT went wrong
+
+Grafana:
+Latency spike detected
+
+Logs:
+OpenAI timeout after 30s
+
+Prometheus/Grafana = metrics visibility
+JSON logs = debugging visibility
+request IDs = traceability
+Celery logs = async workflow debugging
+--------------------------------------------------------------------------------------------------
+Now We have, 
+
+FastAPI backend
+JWT auth
+PostgreSQL + pgvector
+Redis caching
+Celery async workers
+chunked RAG retrieval
+semantic similarity
+Dockerized stack
+S3-ready storage abstraction
+Prometheus monitoring
+Grafana dashboards
+structured logging
+request tracing

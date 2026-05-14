@@ -8,6 +8,7 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.exceptions import AppException
 from app.core.logging import setup_logging
+from app.middleware.request_logging import RequestLoggingMiddleware
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -15,6 +16,8 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
+
+app.add_middleware(RequestLoggingMiddleware)
 
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 

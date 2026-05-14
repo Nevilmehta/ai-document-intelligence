@@ -1,51 +1,60 @@
 # Python
+venv/
+env/
 __pycache__/
 *.pyc
-.venv/
-env/
+*.pyo
+*.pyd
 
-# Env files (IMPORTANT)
-.env*
+# Environment
+.env
+.env.*
 !.env.example
-
-# Node / React
-node_modules/
-dist/
-build/
-
-# VS Code
-.vscode/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# uploads
-uploads/
+!.env.production.example
+!.env.docker
 
 # Logs
 logs/
 *.log
 
-# DB
-*.db
-*.sqlite3
+# Uploads
+uploads/
+
+# Pytest / mypy
+.pytest_cache/
+.mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Docker
-docker-compose.override.yml
+postgres_data/
+redis_data/
+grafana_data/
+
+# Monitoring
+monitoring/grafana/data/
 
 # Alembic
 alembic/versions/__pycache__/
 
-# Temp
+# Node (future frontend)
+node_modules/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Temporary
 tmp/
 temp/
 
-# Celery
-celerybeat-schedule
-*.pid
-
-# Secrets safety
-*.pem
-*.key
-*.crt
+# aws
+.env.docker
+.env.production
+.env
