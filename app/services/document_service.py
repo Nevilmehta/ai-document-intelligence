@@ -25,11 +25,14 @@ from app.workers.tasks import create_source_embedding_task, create_target_embedd
 
 from app.services.storage_service import upload_file_to_s3
 
+from app.services.upload_security_service import validate_upload
+
 def upload_source_document(db: Session, *, current_user: User, file: UploadFile, document_category: str = "resume"):
-    validate_pdf_file(file)
     ensure_upload_dir()
 
     contents = file.file.read()
+    sanitized_filename = validate_upload(file, contents)
+
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
 
     if len(contents) > max_bytes:
@@ -39,7 +42,7 @@ def upload_source_document(db: Session, *, current_user: User, file: UploadFile,
         )
 
     # step 1 extract text (use temp file)
-    stored_filename = generate_stored_filename(file.filename)
+    stored_filename = generate_stored_filename(sanitized_filename)
     file_path = build_file_path(stored_filename)
 
     with open(file_path, "wb") as buffer:
@@ -71,7 +74,7 @@ def upload_source_document(db: Session, *, current_user: User, file: UploadFile,
         db,
         user_id=current_user.id,
         file_name=stored_filename,
-        original_file_name=file.filename,
+        original_file_name=sanitized_filename,
         file_type=file.content_type or "application/pdf",
         file_path=None if storage_provider == "s3" else file_path,
         document_category=document_category,
@@ -89,6 +92,17 @@ def upload_source_document(db: Session, *, current_user: User, file: UploadFile,
     create_source_chunks_and_embeddings_task.delay(
         user_id = current_user.id,
         source_document_id = saved_document.id
+    )
+
+    logger.info(
+        "File upload validated",
+        extra={
+            "request_id": "-",
+            "original_filename": file.filename,
+            "sanitized_filename": sanitized_filename,
+            "content_type": file.content_type,
+            "size_bytes": len(contents),
+        },
     )
 
     return saved_document

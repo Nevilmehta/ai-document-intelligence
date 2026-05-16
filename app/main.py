@@ -12,12 +12,34 @@ from app.middleware.request_logging import RequestLoggingMiddleware
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi import _rate_limit_exceeded_handler
+
+from app.core.rate_limiter import limiter
+from app.core.rate_limit_handler import custom_rate_limit_handler
+
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
+from app.middleware.security_headers import SecurityHeadersMiddleware
+
 setup_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
 
+app.state.limiter = limiter
+
+app.add_middleware(SecurityHeadersMiddleware)
+
 app.add_middleware(RequestLoggingMiddleware)
+
+app.add_middleware(SlowAPIMiddleware)
+
+app.add_exception_handler(
+    RateLimitExceeded,
+    custom_rate_limit_handler
+)
 
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
@@ -28,6 +50,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "localhost",
+        "127.0.0.1",
+        "*.localhost",
+    ],
+)
+
+allow_methods=["GET", "POST", "PUT", "DELETE"]
+allow_headers=["*"]
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):

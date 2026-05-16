@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -8,11 +8,14 @@ from app.models.user import User
 from app.schemas.analysis import AnalysisCreate
 from app.schemas.job import AnalysisJobCreateResponse, AnalysisJobStatusResponse
 from app.services.job_service import enqueue_analysis_job, get_analysis_job
+from app.core.rate_limiter import limiter
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 @router.post("/analysis", response_model=AnalysisJobCreateResponse, status_code=status.HTTP_202_ACCEPTED)
+@limiter.limit("5/minute")
 def create_analysis_job(
+    request: Request,
     payload: AnalysisCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

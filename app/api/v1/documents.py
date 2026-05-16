@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Form, status
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Form, status, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -17,11 +17,14 @@ from app.schemas.document import (
     TargetDocumentCreate,
     TargetDocumentResponse
 )
+from app.core.rate_limiter import limiter
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
 @router.post("/upload-source", response_model=SourceDocumentResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 def upload_source(
+    request: Request,
     file: UploadFile = File(...),
     document_category: str = Form("resume"),
     db: Session = Depends(get_db),
@@ -56,7 +59,9 @@ def get_source_document_by_id(
     return document
 
 @router.post("/create-target", response_model=TargetDocumentResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/minute")
 def create_target_document(
+    request: Request,
     payload: TargetDocumentCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

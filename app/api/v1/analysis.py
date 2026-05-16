@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -6,11 +6,14 @@ from app.api.deps import get_current_user
 from app.models.user import User
 from app.schemas.analysis import AnalysisCreate, AnalysisResponse
 from app.services.analysis_service import run_analysis, get_all_analysis_results, get_analysis_result
+from app.core.rate_limiter import limiter
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
 
 @router.post("/run", response_model=AnalysisResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 def create_analysis(
+    request: Request,
     payload: AnalysisCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
