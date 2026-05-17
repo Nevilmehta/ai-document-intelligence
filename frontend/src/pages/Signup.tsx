@@ -8,12 +8,12 @@ export function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const { signup, isLoading, error, token, clearError } = useAuthStore()
+  const { signup, isLoading, error, token, isDemoMode, clearError } = useAuthStore()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (token) navigate('/dashboard', { replace: true })
-  }, [token, navigate])
+    if (token && !isDemoMode) navigate('/dashboard', { replace: true })
+  }, [token, isDemoMode, navigate])
 
   useEffect(() => clearError, [clearError])
 

@@ -7,12 +7,12 @@ import { useAuthStore } from '../store/authStore'
 export function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login, isLoading, error, token, clearError } = useAuthStore()
+  const { login, isLoading, error, token, isDemoMode, clearError } = useAuthStore()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (token) navigate('/dashboard', { replace: true })
-  }, [token, navigate])
+    if (token && !isDemoMode) navigate('/dashboard', { replace: true })
+  }, [token, isDemoMode, navigate])
 
   useEffect(() => clearError, [clearError])
 

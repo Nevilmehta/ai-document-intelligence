@@ -29,11 +29,11 @@ export default function App() {
     <BrowserRouter>
       <AuthInitializer />
       <Routes>
-        {/* Public */}
+        {/* Auth pages */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected — Layout wraps all */}
+        {/* All app routes — accessible without login (demo mode handles auth silently) */}
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/sources" element={<UploadSource />} />
@@ -44,7 +44,6 @@ export default function App() {
           <Route path="/monitoring" element={<SystemMonitoring />} />
         </Route>
 
-        {/* Default */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

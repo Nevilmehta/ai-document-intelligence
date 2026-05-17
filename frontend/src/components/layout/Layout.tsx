@@ -1,8 +1,10 @@
-import { Outlet, Navigate, useLocation } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Component, type ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
+import { DemoBanner } from '../shared/DemoBanner'
 import { useAuthStore } from '../../store/authStore'
 
 class ErrorBoundary extends Component<
@@ -45,16 +47,15 @@ class ErrorBoundary extends Component<
 }
 
 export function Layout() {
-  const { token } = useAuthStore()
+  const { isDemoMode } = useAuthStore()
   const { pathname } = useLocation()
-
-  if (!token) return <Navigate to="/login" replace />
 
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />
+        {isDemoMode && <DemoBanner />}
         <main className="flex-1 overflow-y-auto">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div

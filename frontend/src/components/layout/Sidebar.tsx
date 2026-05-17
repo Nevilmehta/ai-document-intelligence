@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -11,6 +11,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Brain,
+  LogIn,
+  UserPlus,
+  UserCircle2,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
@@ -28,12 +31,14 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
-  const { user, logout } = useAuthStore()
+  const { user, token, isDemoMode, logout } = useAuthStore()
   const navigate = useNavigate()
+
+  const isRealUser = token && !isDemoMode
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/dashboard')
   }
 
   return (
@@ -89,7 +94,7 @@ export function Sidebar() {
                 )}
                 <Icon
                   className={cn(
-                    'w-4.5 h-4.5 flex-shrink-0 relative z-10 transition-colors',
+                    'flex-shrink-0 relative z-10 transition-colors',
                     isActive ? 'text-violet-400' : 'text-slate-500 group-hover:text-slate-300'
                   )}
                   size={18}
@@ -112,46 +117,121 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* User */}
+      {/* User section */}
       <div className="border-t border-white/[0.07] p-3 space-y-1">
-        <div className="flex items-center gap-3 px-2 py-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-            {getInitials(user?.full_name, user?.email)}
-          </div>
+        {isRealUser ? (
+          /* Real authenticated user */
+          <>
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                {getInitials(user?.full_name, user?.email)}
+              </div>
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex-1 min-w-0"
+                  >
+                    <p className="text-sm font-medium text-slate-200 truncate">
+                      {user?.full_name || 'User'}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="btn-ghost w-full justify-start text-slate-500 hover:text-red-400 hover:bg-red-500/[0.08]"
+            >
+              <LogOut size={16} className="flex-shrink-0" />
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm"
+                  >
+                    Sign out
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+          </>
+        ) : isDemoMode ? (
+          /* Demo / guest auto-authenticated */
+          <>
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-8 h-8 rounded-full bg-white/[0.06] border border-white/[0.10] flex items-center justify-center flex-shrink-0">
+                <UserCircle2 size={16} className="text-slate-500" />
+              </div>
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex-1 min-w-0"
+                  >
+                    <p className="text-xs font-medium text-slate-400 truncate">Guest</p>
+                    <p className="text-[10px] text-slate-600 truncate">Demo account</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex gap-1.5 px-2"
+                >
+                  <Link
+                    to="/login"
+                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all"
+                  >
+                    <LogIn size={11} /> Log in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium text-violet-300 hover:text-white bg-violet-500/[0.15] hover:bg-violet-500/[0.25] border border-violet-500/25 transition-all"
+                  >
+                    <UserPlus size={11} /> Sign up
+                  </Link>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        ) : (
+          /* Pure guest — no token yet */
           <AnimatePresence>
             {!collapsed && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 min-w-0"
+                className="flex gap-1.5 px-2 py-1"
               >
-                <p className="text-sm font-medium text-slate-200 truncate">
-                  {user?.full_name || 'User'}
-                </p>
-                <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                <Link
+                  to="/login"
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all"
+                >
+                  <LogIn size={11} /> Log in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium text-violet-300 hover:text-white bg-violet-500/[0.15] hover:bg-violet-500/[0.25] border border-violet-500/25 transition-all"
+                >
+                  <UserPlus size={11} /> Sign up
+                </Link>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="btn-ghost w-full justify-start text-slate-500 hover:text-red-400 hover:bg-red-500/[0.08]"
-        >
-          <LogOut size={16} className="flex-shrink-0" />
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-sm"
-              >
-                Sign out
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
+        )}
       </div>
 
       {/* Collapse toggle */}
