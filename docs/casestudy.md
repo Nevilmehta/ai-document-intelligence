@@ -199,3 +199,23 @@ secure workflows
 maintainable architectures
 
 around the AI layer.
+
+Upload PDF
+↓
+Extract text
+↓
+Chunk document
+↓
+Generate embeddings
+↓
+Store vectors in pgvector
+↓
+Retrieve top relevant chunks
+↓
+Build contextual prompt
+↓
+Send prompt to LLM
+↓
+LLM generates analysis
+
+THAT is a real RAG pipeline.
