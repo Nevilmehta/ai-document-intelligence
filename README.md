@@ -304,6 +304,43 @@ uvicorn app.main:app --reload
 celery -A app.workers.tasks worker --loglevel=info --pool=solo
 ```
 
+## Run Frontend
+
+Open a new terminal window, then:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will be available at:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# Full Application — Recommended Start Order
+
+Run each of the following in a separate terminal:
+
+| Step | Command | What it starts |
+|------|---------|---------------|
+| 1 | `docker compose up --build` | PostgreSQL, pgvector, Redis, API server, Celery worker |
+| 2 | `cd frontend && npm run dev` | React frontend on localhost:5173 |
+
+Once both are running, open your browser and go to:
+
+```text
+http://localhost:5173
+```
+
+The app opens in **demo mode** — no login required. You can explore the full UI, upload documents, and run analysis. Sign up for a personal account to keep your own history.
+
+> **Note:** The API server runs on `http://localhost:8000`. The frontend proxies all `/api/v1/...` requests to it automatically via Vite's dev server configuration.
+
 ---
 
 # Monitoring Services
