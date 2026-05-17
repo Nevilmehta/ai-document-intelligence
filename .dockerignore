@@ -1,10 +1,13 @@
 venv
+env
 __pycache__
 *.pyc
 .env
 .git
 .gitignore
 uploads
+logs
+frontend
 alembic/versions/__pycache__
 .pytest_cache
 .mypy_cache

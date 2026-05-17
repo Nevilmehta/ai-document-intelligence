@@ -36,17 +36,15 @@ def validate_mime_type(file: UploadFile) -> None:
             status_code=400,
         )
 
-def validate_pdf_signature(contents: bytes) -> None:
-
-    logger = logging.getLogger("security")
-    logger.warning(
-        "Invalid PDF signature detected",
-        extra={
-            "filename": "unknown",
-        },
-    )
-    
+def validate_pdf_signature(contents: bytes, filename: str) -> None:
     if not contents.startswith(PDF_SIGNATURE):
+        logger = logging.getLogger("security")
+        logger.warning(
+            "Invalid PDF signature detected",
+            extra={
+                "upload_filename": filename,
+            },
+        )
         raise AppException(
             "Invalid PDF file signature.",
             status_code=400,
@@ -63,6 +61,6 @@ def validate_upload(file: UploadFile, contents: bytes) -> str:
 
     validate_mime_type(file)
     validate_file_size(contents)
-    validate_pdf_signature(contents)
+    validate_pdf_signature(contents, sanitized_filename)
 
     return sanitized_filename

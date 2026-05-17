@@ -9,11 +9,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
 
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "img-src 'self' data:; "
-            "style-src 'self' 'unsafe-inline'; "
-            "script-src 'self';"
-        )
+        # response.headers["Content-Security-Policy"] = (
+        #     "default-src 'self'; "
+        #     "img-src 'self' data:; "
+        #     "style-src 'self' 'unsafe-inline'; "
+        #     "script-src 'self';"
+        # )
 
         return response

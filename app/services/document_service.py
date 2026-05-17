@@ -1,4 +1,6 @@
 from pathlib import Path
+import logging
+
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
@@ -26,6 +28,8 @@ from app.workers.tasks import create_source_embedding_task, create_target_embedd
 from app.services.storage_service import upload_file_to_s3
 
 from app.services.upload_security_service import validate_upload
+
+logger = logging.getLogger(__name__)
 
 def upload_source_document(db: Session, *, current_user: User, file: UploadFile, document_category: str = "resume"):
     ensure_upload_dir()

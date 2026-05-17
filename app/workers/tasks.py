@@ -94,9 +94,16 @@ def run_document_analysis_task(
             },
         )
 
-        job = get_job_by_task_id(db, celery_task_id=self.request.id)
-        if job:
-            update_job_status(db, job=job, status="FAILURE")
+        try:
+            db.rollback()
+            job = get_job_by_task_id(db, celery_task_id=self.request.id)
+            if job:
+                update_job_status(db, job=job, status="FAILURE")
+        except Exception:
+            logger.exception(
+                "Failed to update job status to FAILURE",
+                extra={"request_id": "-", "task_id": self.request.id},
+            )
 
         raise
 

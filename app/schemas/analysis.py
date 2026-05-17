@@ -19,6 +19,8 @@ class AnalysisResponse(BaseModel):
     cover_letter: str
     model_name: str | None = None
     created_at: datetime
+    source_filename: str | None = None
+    target_title: str | None = None
 
     model_config = {
         "from_attributes": True

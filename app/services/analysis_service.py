@@ -24,7 +24,9 @@ from app.utils.cache_keys import build_analysis_cache_key
 logger = logging.getLogger(__name__)
 
 
-def _deserialize_analysis_record(record):
+def _deserialize_analysis_record(record, source_doc=None, target_doc=None):
+    src = source_doc or record.source_document
+    tgt = target_doc or record.target_document
     return {
         "id": record.id,
         "source_document_id": record.source_document_id,
@@ -38,7 +40,9 @@ def _deserialize_analysis_record(record):
         "improved_bullets": json.loads(record.improved_bullets),
         "cover_letter": record.cover_letter,
         "model_name": record.model_name,
-        "created_at": record.created_at
+        "created_at": record.created_at,
+        "source_filename": src.original_file_name if src else None,
+        "target_title": tgt.title if tgt else None,
     }
 
 def perform_analysis_and_store(
@@ -187,7 +191,11 @@ def perform_analysis_and_store(
         model_name=llm_result["model_name"]
     )
 
-    response_data = _deserialize_analysis_record(saved_result)
+    response_data = _deserialize_analysis_record(
+        saved_result,
+        source_doc=source_document,
+        target_doc=target_document,
+    )
 
     cached_data = {
         **response_data,

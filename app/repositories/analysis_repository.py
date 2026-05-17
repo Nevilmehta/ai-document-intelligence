@@ -1,5 +1,5 @@
 import json
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models.analysis import AnalysisResult
 
 def create_analysis_result(
@@ -40,6 +40,10 @@ def create_analysis_result(
 def get_analysis_result_by_id(db: Session, *, analysis_id: int, user_id: int):
     return (
         db.query(AnalysisResult)
+        .options(
+            joinedload(AnalysisResult.source_document),
+            joinedload(AnalysisResult.target_document),
+        )
         .filter(AnalysisResult.id == analysis_id, AnalysisResult.user_id == user_id)
         .first()
     )
@@ -47,6 +51,10 @@ def get_analysis_result_by_id(db: Session, *, analysis_id: int, user_id: int):
 def list_analysis_results(db: Session, *, user_id: int):
     return (
         db.query(AnalysisResult)
+        .options(
+            joinedload(AnalysisResult.source_document),
+            joinedload(AnalysisResult.target_document),
+        )
         .filter(AnalysisResult.user_id == user_id)
         .order_by(AnalysisResult.created_at.desc())
         .all()
